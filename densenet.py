@@ -77,7 +77,7 @@ def preprocess_input(x, data_format=None):
 def DenseNet(input_shape=None, depth=40, nb_dense_block=3, growth_rate=12, nb_filter=-1, nb_layers_per_block=-1,
              bottleneck=False, reduction=0.0, dropout_rate=0.0, weight_decay=1e-4, subsample_initial_block=False,
              include_top=True, weights=None, input_tensor=None,
-             classes=10, activation='softmax'):
+             classes=10, activation='softmax', output_fn=None):
     '''Instantiate the DenseNet architecture,
         optionally loading weights pre-trained
         on CIFAR-10. Note that when using TensorFlow,
@@ -161,7 +161,8 @@ def DenseNet(input_shape=None, depth=40, nb_dense_block=3, growth_rate=12, nb_fi
 
     x = __create_dense_net(classes, img_input, include_top, depth, nb_dense_block,
                            growth_rate, nb_filter, nb_layers_per_block, bottleneck, reduction,
-                           dropout_rate, weight_decay, subsample_initial_block, activation)
+                           dropout_rate, weight_decay, subsample_initial_block, activation,
+                           output_fn=output_fn)
 
     # Ensure that the model takes into account
     # any potential predecessors of `input_tensor`.
@@ -559,7 +560,8 @@ def __transition_up_block(ip, nb_filters, type='deconv', weight_decay=1E-4):
 
 def __create_dense_net(nb_classes, img_input, include_top, depth=40, nb_dense_block=3, growth_rate=12, nb_filter=-1,
                        nb_layers_per_block=-1, bottleneck=False, reduction=0.0, dropout_rate=None, weight_decay=1e-4,
-                       subsample_initial_block=False, activation='softmax'):
+                       subsample_initial_block=False, activation='softmax',
+                       output_fn=None):
     ''' Build the DenseNet model
     Args:
         nb_classes: number of classes
@@ -645,12 +647,15 @@ def __create_dense_net(nb_classes, img_input, include_top, depth=40, nb_dense_bl
     x, nb_filter = __dense_block(x, final_nb_layer, nb_filter, growth_rate, bottleneck=bottleneck,
                                  dropout_rate=dropout_rate, weight_decay=weight_decay)
 
-    x = BatchNormalization(axis=concat_axis, epsilon=1.1e-5)(x)
-    x = Activation('relu')(x)
-    x = GlobalAveragePooling2D()(x)
+    if output_fn is not None:
+        x = output_fn(x)
+    else:
+        x = BatchNormalization(axis=concat_axis, epsilon=1.1e-5)(x)
+        x = Activation('relu')(x)
+        x = GlobalAveragePooling2D()(x)
 
-    if include_top:
-        x = Dense(nb_classes, activation=activation)(x)
+        if include_top:
+            x = Dense(nb_classes, activation=activation)(x)
 
     return x
 
