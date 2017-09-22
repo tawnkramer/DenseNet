@@ -371,12 +371,13 @@ def DenseNetImageNet121(input_shape=None,
                         weights='imagenet',
                         input_tensor=None,
                         classes=1000,
-                        activation='softmax'):
+                        activation='softmax',
+                        output_fn=None):
     return DenseNet(input_shape, depth=121, nb_dense_block=4, growth_rate=32, nb_filter=64,
                     nb_layers_per_block=[6, 12, 24, 16], bottleneck=bottleneck, reduction=reduction,
                     dropout_rate=dropout_rate, weight_decay=weight_decay, subsample_initial_block=True,
                     include_top=include_top, weights=weights, input_tensor=input_tensor,
-                    classes=classes, activation=activation)
+                    classes=classes, activation=activation, output_fn=output_fn)
 
 
 def DenseNetImageNet169(input_shape=None,
